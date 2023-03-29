@@ -80,6 +80,7 @@ def get_patches(x,
 
     strt, fnnsh = 0, BATCH_SIZE
     output_start, output_fnnsh = 0, BATCH_SIZE * scaling_factor
+    x = tf.cast(x, dtype=tf.float32)
 
     for i in range(0, len(x), BATCH_SIZE):
         x_out = tf.image.extract_patches(images=x[strt:fnnsh, ...],
