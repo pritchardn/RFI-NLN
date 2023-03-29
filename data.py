@@ -52,14 +52,14 @@ def load_hera(args):
         rate = (1, 1, 1, 1)
 
         train_data = get_patches(train_data, None, p_size, s_size, rate, 'VALID')
-        train_masks = get_patches(train_masks, None, p_size, s_size, rate, 'VALID').astype(np.bool)
+        train_masks = get_patches(train_masks, None, p_size, s_size, rate, 'VALID').astype(bool)
 
         test_data = get_patches(test_data, None, p_size, s_size, rate, 'VALID')
         test_masks = get_patches(test_masks.astype('int'), None, p_size, s_size, rate,
-                                 'VALID').astype(np.bool)
+                                 'VALID').astype(bool)
 
         test_masks_orig = get_patches(test_masks_orig.astype('int'), None, p_size, s_size, rate,
-                                      'VALID').astype(np.bool)
+                                      'VALID').astype(bool)
 
         train_labels = np.empty(len(train_data), dtype='object')
         train_labels[np.any(train_masks, axis=(1, 2, 3))] = args.anomaly_class
@@ -130,9 +130,9 @@ def load_lofar(args):
 
         train_data = get_patches(train_data, None, p_size, s_size, rate, 'VALID')
         test_data = get_patches(test_data, None, p_size, s_size, rate, 'VALID')
-        train_masks = get_patches(train_masks, None, p_size, s_size, rate, 'VALID').astype(np.bool)
+        train_masks = get_patches(train_masks, None, p_size, s_size, rate, 'VALID').astype(bool)
         test_masks = get_patches(test_masks.astype('int'), None, p_size, s_size, rate,
-                                 'VALID').astype(np.bool)
+                                 'VALID').astype(bool)
 
         train_labels = np.empty(len(train_data), dtype='object')
         train_labels[np.any(train_masks, axis=(1, 2, 3))] = args.anomaly_class
