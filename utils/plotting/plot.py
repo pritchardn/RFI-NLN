@@ -26,6 +26,7 @@ def generate_and_save_training(losses, legend, name, args):  # ae_loss,d_loss,e_
     plt.xlabel('Epochs')
     plt.ylabel('Loss')
     plt.tight_layout()
+    os.makedirs(f"outputs/{name}/{args.anomaly_class}/{args.model_name}", exist_ok=True)
     plt.savefig('outputs/{}/{}/{}/loss.png'.format(name,
                                                    args.anomaly_class,
                                                    args.model_name))
