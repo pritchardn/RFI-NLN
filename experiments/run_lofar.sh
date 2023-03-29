@@ -31,7 +31,7 @@ do
 						  -patch_stride_x $patch \
 						  -patch_stride_y $patch \
 						  -data LOFAR\
-						  -data_path /data/mmesarcik/LOFAR/uncompressed/\
+						  -data_path ./data\
 						  -neighbors 20\
 						  -algorithm knn\
 						  -seed $d$seed | tee -a lofar.log 

@@ -1,5 +1,5 @@
-#INIT FILE
+# INIT FILE
+from .data import *
+from .metrics import *
 from .plotting import *
 from .training import *
-from .metrics import *
-from .data import *

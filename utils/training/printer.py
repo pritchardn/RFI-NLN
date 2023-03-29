@@ -1,4 +1,4 @@
-def print_epoch(model_type,epoch,time,losses,AUC):
+def print_epoch(model_type, epoch, time, losses, AUC):
     """
         Messages to print while training
 
@@ -9,10 +9,9 @@ def print_epoch(model_type,epoch,time,losses,AUC):
         AUC (double): AUROC score of the model
 
     """
-    print ('__________________')
+    print('__________________')
     print('Epoch {} at {} sec \n{} losses: {} \nAUC = {}'.format(epoch,
-                                                               time,
-                                                               model_type,
-                                                               losses,
-                                                               AUC))
-
+                                                                 time,
+                                                                 model_type,
+                                                                 losses,
+                                                                 AUC))

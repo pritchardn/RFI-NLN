@@ -1,6 +1,7 @@
-#INIT FILE
+# INIT FILE
 import sys
-sys.path.insert(1,'../..')
+
+sys.path.insert(1, '../..')
 
 from .patches import get_patched_dataset, get_patches, reconstruct, reconstruct_latent_patches
 from .lofar import get_lofar_data, _random_crop

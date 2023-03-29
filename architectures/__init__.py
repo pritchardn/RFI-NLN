@@ -1,8 +1,9 @@
 # INIT FILE
 import sys
-sys.path.insert(1,'../')
 
-from .ae import main as train_ae 
+sys.path.insert(1, '../')
+
+from .ae import main as train_ae
 from .ae_ssim import main as train_ae_ssim
 from .dae import main as train_dae
 
