@@ -29,7 +29,7 @@ def train_step(model, x):
     return loss
 
 
-def train(ae, train_dataset, train_images, test_images, test_labels, args, verbose=True, save=True):
+def train(ae, train_dataset, args,):
     ae_loss = []
     for epoch in range(args.epochs):
         start = time.time()
@@ -56,14 +56,14 @@ def train(ae, train_dataset, train_images, test_images, test_labels, args, verbo
     return ae
 
 
-def main(train_dataset, train_images, train_labels, test_images, test_labels, test_masks,
+def main(train_images, test_images, test_labels, test_masks,
          test_masks_orig, args):
     if args.data == 'MVTEC':
         ae = Autoencoder_MVTEC(args)
     else:
         ae = Autoencoder(args)
 
-    ae = train(ae, train_dataset, train_images, test_images, test_labels, args)
+    ae = train(ae, train_images, args)
     end_routine(train_images, test_images, test_labels, test_masks, test_masks_orig, [ae], 'AE',
                 args)
 

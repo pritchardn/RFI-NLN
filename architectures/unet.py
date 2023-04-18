@@ -2,9 +2,7 @@ import time
 
 from model_config import *
 from models import UNET
-from utils.plotting import (generate_and_save_images,
-                            generate_and_save_training)
-from utils.training import print_epoch, save_checkpoint
+from utils import generate_and_save_images, generate_and_save_training, print_epoch, save_checkpoint
 from .helper import end_routine
 
 optimizer = tf.keras.optimizers.Adam()
@@ -25,8 +23,8 @@ def train_step(model, x, y):
     return loss
 
 
-def train(unet, train_dataset, train_images, train_masks, test_images, test_labels, test_masks,
-          args, verbose=True, save=True):
+def train(unet, train_images, train_masks,
+          args):
     unet_loss = []
     train_mask_dataset = tf.data.Dataset.from_tensor_slices(train_masks.astype('float32')).shuffle(
         BUFFER_SIZE, seed=42).batch(BATCH_SIZE)
@@ -58,12 +56,10 @@ def train(unet, train_dataset, train_images, train_masks, test_images, test_labe
     return unet
 
 
-def main(train_dataset, train_images, train_labels, train_masks, test_images, test_labels,
+def main(train_images, train_masks, test_images, test_labels,
          test_masks, test_masks_orig, args):
     unet = UNET(args)
-
-    unet = train(unet, train_dataset, train_images, train_masks, test_images, test_labels,
-                 test_masks, args)
+    unet = train(unet, train_images, train_masks, args)
     end_routine(train_images, test_images, test_labels, test_masks, test_masks_orig, [unet], 'UNET',
                 args)
 

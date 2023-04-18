@@ -6,7 +6,7 @@ from .helper import end_routine
 optimizer = tf.keras.optimizers.Adam()
 
 
-def main(train_dataset, train_images, train_labels, test_images, test_labels, test_masks,
+def main(train_images, test_images, test_labels, test_masks,
          test_masks_orig, args):
     s = 256 // args.patch_x
 

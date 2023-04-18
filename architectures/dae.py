@@ -62,7 +62,7 @@ def train_step(ae, discriminator, x, ):  # xn):
     return auto_loss, disc_loss, gen_loss
 
 
-def train(ae, discriminator, train_dataset, test_images, test_labels, args):
+def train(ae, discriminator, train_dataset, args):
     ae_loss, d_loss, g_loss = [], [], []
     for epoch in range(args.epochs):
         start = time.time()
@@ -105,7 +105,7 @@ def train(ae, discriminator, train_dataset, test_images, test_labels, args):
     return ae, discriminator
 
 
-def main(train_dataset, train_images, train_labels, test_images, test_labels, test_masks,
+def main(train_dataset, train_images, test_images, test_labels, test_masks,
          test_masks_orig, args):
     if args.data == 'MVTEC':
         ae = Autoencoder_MVTEC(args)
@@ -116,8 +116,6 @@ def main(train_dataset, train_images, train_labels, test_images, test_labels, te
     ae, discriminator = train(ae,
                               discriminator,
                               train_dataset,
-                              test_images,
-                              test_labels,
                               args)
     end_routine(train_images, test_images, test_labels, test_masks, test_masks_orig,
                 [ae, discriminator], 'DAE_disc', args)

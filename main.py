@@ -7,15 +7,15 @@ def main():
     """
         Reads data and cmd arguments and trains models
     """
-    if args.args.data == 'HERA':
-        data = load_hera(args.args)
-    elif args.args.data == 'LOFAR':
-        data = load_lofar(args.args)
-    elif args.args.data == 'HIDE':
-        data = load_hide(args.args)
+    with tf.device("/cpu:0"):
+        if args.args.data == 'HERA':
+            data = load_hera(args.args)
+        elif args.args.data == 'LOFAR':
+            data = load_lofar(args.args)
+        elif args.args.data == 'HIDE':
+            data = load_hide(args.args)
 
-    (unet_train_dataset, train_data, train_labels, train_masks,
-     ae_train_dataset, ae_train_data, ae_train_labels,
+    (train_dataset, train_data, train_labels, train_masks, ae_train_data, ae_train_labels,
      test_data, test_labels, test_masks, test_masks_orig) = data
 
     print(" __________________________________ \n Save name {}".format(
@@ -23,31 +23,62 @@ def main():
     print(" __________________________________ \n")
 
     if args.args.model == 'UNET':
-        train_unet(unet_train_dataset, train_data, train_labels, train_masks, test_data,
-                   test_labels, test_masks, test_masks_orig, args.args)
+        del train_dataset
+        del train_labels
+        del ae_train_data
+        del ae_train_labels
+        with tf.device('/cpu:0'):
+            train_unet(train_data, train_masks, test_data,
+                       test_labels, test_masks, test_masks_orig, args.args)
 
     if args.args.model == 'RNET':
-        train_rnet(unet_train_dataset, train_data, train_labels, train_masks, test_data,
+        del train_dataset
+        del train_labels
+        del ae_train_data
+        del ae_train_labels
+        train_rnet(train_data, train_masks, test_data,
                    test_labels, test_masks, test_masks_orig, args.args)
 
     if args.args.model == 'RFI_NET':
-        train_rfi_net(unet_train_dataset, train_data, train_labels, train_masks, test_data,
+        del train_dataset
+        del train_labels
+        del ae_train_data
+        del ae_train_labels
+        train_rfi_net(train_data, train_masks, test_data,
                       test_labels, test_masks, test_masks_orig, args.args)
 
     elif args.args.model == 'DKNN':
-        train_resnet(ae_train_dataset, ae_train_data, ae_train_labels, test_data, test_labels,
+        del train_dataset
+        del train_data
+        del train_labels
+        del train_masks
+        del ae_train_labels
+        train_resnet(ae_train_data, test_data, test_labels,
                      test_masks, test_masks_orig, args.args)
 
     elif args.args.model == 'AE':
-        train_ae(ae_train_dataset, ae_train_data, ae_train_labels, test_data, test_labels,
+        del train_dataset
+        del train_data
+        del train_labels
+        del train_masks
+        del ae_train_labels
+        train_ae(ae_train_data, test_data, test_labels,
                  test_masks, test_masks_orig, args.args)
 
     elif args.args.model == 'AE-SSIM':
-        train_ae_ssim(ae_train_dataset, ae_train_data, ae_train_labels, test_data, test_labels,
+        del train_data
+        del train_labels
+        del train_masks
+        del ae_train_labels
+        train_ae_ssim(train_dataset, ae_train_data, test_data, test_labels,
                       test_masks, test_masks_orig, args.args)
 
     elif args.args.model == 'DAE':
-        train_dae(ae_train_dataset, ae_train_data, ae_train_labels, test_data, test_labels,
+        del train_data
+        del train_labels
+        del train_masks
+        del ae_train_labels
+        train_dae(train_dataset, ae_train_data, test_data, test_labels,
                   test_masks, test_masks_orig, args.args)
 
 

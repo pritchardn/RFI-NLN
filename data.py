@@ -95,7 +95,6 @@ def load_lofar(args):
         Load data from lofar 
 
     """
-
     train_data, train_masks, test_data, test_masks = get_lofar_data(args)
 
     if args.limit is not None:
@@ -145,18 +144,19 @@ def load_lofar(args):
         ae_train_data = train_data[np.invert(np.any(train_masks, axis=(1, 2, 3)))]
         ae_train_labels = train_labels[np.invert(np.any(train_masks, axis=(1, 2, 3)))]
 
-    unet_train_dataset = tf.data.Dataset.from_tensor_slices(train_data).shuffle(BUFFER_SIZE,
-                                                                                seed=42).batch(
-        BATCH_SIZE)
-    ae_train_dataset = tf.data.Dataset.from_tensor_slices(ae_train_data).shuffle(BUFFER_SIZE,
-                                                                                 seed=42).batch(
-        BATCH_SIZE)
+    if str(args.model).find('AE') != -1:
+        train_dataset = tf.data.Dataset.from_tensor_slices(ae_train_data).shuffle(BUFFER_SIZE,
+                                                                                  seed=42).batch(
+            BATCH_SIZE)
+    else:
+        train_dataset = tf.data.Dataset.from_tensor_slices(train_data).shuffle(BUFFER_SIZE,
+                                                                               seed=42).batch(
+            BATCH_SIZE)
 
-    return (unet_train_dataset,
+    return (train_dataset,
             train_data,
             train_labels,
             train_masks,
-            ae_train_dataset,
             ae_train_data,
             ae_train_labels,
             test_data,

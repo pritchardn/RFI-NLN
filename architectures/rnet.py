@@ -25,8 +25,7 @@ def train_step(model, x, y):
     return loss
 
 
-def train(rnet, train_dataset, train_images, train_masks, test_images, test_labels, test_masks,
-          args, verbose=True, save=True):
+def train(rnet, train_images, train_masks, args):
     rnet_loss = []
     train_mask_dataset = tf.data.Dataset.from_tensor_slices(train_masks.astype('float32')).shuffle(
         BUFFER_SIZE, seed=42).batch(BATCH_SIZE)
@@ -58,12 +57,11 @@ def train(rnet, train_dataset, train_images, train_masks, test_images, test_labe
     return rnet
 
 
-def main(train_dataset, train_images, train_labels, train_masks, test_images, test_labels,
+def main(train_images, train_masks, test_images, test_labels,
          test_masks, test_masks_orig, args):
     rnet = RNET(args)
 
-    rnet = train(rnet, train_dataset, train_images, train_masks, test_images, test_labels,
-                 test_masks, args)
+    rnet = train(rnet, train_images, train_masks, args)
     end_routine(train_images, test_images, test_labels, test_masks, test_masks_orig, [rnet], 'RNET',
                 args)
 
