@@ -1,9 +1,10 @@
 import copy
-
+import os
 import numpy as np
 import tensorflow as tf
 
 from model_config import BUFFER_SIZE, BATCH_SIZE
+from utils import args
 from utils.data import (get_lofar_data,
                         get_hera_data,
                         process,
@@ -72,16 +73,19 @@ def load_hera(args):
         ae_train_data = train_data[np.invert(np.any(train_masks, axis=(1, 2, 3)))]
         ae_train_labels = train_labels[np.invert(np.any(train_masks, axis=(1, 2, 3)))]
 
-    unet_train_dataset = tf.data.Dataset.from_tensor_slices(train_data).shuffle(BUFFER_SIZE).batch(
-        BATCH_SIZE)
-    ae_train_dataset = tf.data.Dataset.from_tensor_slices(ae_train_data).shuffle(BUFFER_SIZE).batch(
-        BATCH_SIZE)
+    if str(args.model).find('AE') != -1:
+        train_dataset = tf.data.Dataset.from_tensor_slices(ae_train_data).shuffle(BUFFER_SIZE,
+                                                                                  seed=42).batch(
+            BATCH_SIZE)
+    else:
+        train_dataset = tf.data.Dataset.from_tensor_slices(train_data).shuffle(BUFFER_SIZE,
+                                                                               seed=42).batch(
+            BATCH_SIZE)
 
-    return (unet_train_dataset,
+    return (train_dataset,
             train_data,
             train_labels,
             train_masks,
-            ae_train_dataset,
             ae_train_data,
             ae_train_labels,
             test_data,
@@ -163,3 +167,65 @@ def load_lofar(args):
             test_labels,
             test_masks,
             test_masks)
+
+
+def _int64_feature(value):
+    """Returns an int64_list from a bool / enum / int / uint."""
+    return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
+
+
+def _bytes_feature(value):
+    """Returns a bytes_list from a string / byte."""
+    if isinstance(value, type(tf.constant(0))):
+        value = value.numpy()  # BytesList won't unpack a string from an EagerTensor.
+    return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
+
+
+def tf_record(image: np.array, mask: np.array):
+    image_shape = image.shape
+    feature = {
+        'height': _int64_feature(image_shape[0]),
+        'width': _int64_feature(image_shape[1]),
+        'channels': _int64_feature(image_shape[2]),
+        'mask': _bytes_feature(mask.encode('utf-8')),
+        'image': _bytes_feature(image.tobytes())
+    }
+    return tf.train.Example(features=tf.train.Features(feature=feature))
+
+
+def args_to_tf_filename(args):
+    anomaly_string = "-all" if args.rfi is None else "-" + str(args.anomaly_type)
+    dataset_type = 'AE' if str(args.model).find('AE') != -1 else 'STD'
+    filename = f"{args.data}{anomaly_string}-{args.rfi_threshold}-{args.patch_x}-{dataset_type}"
+    return filename
+
+
+def process_into_tfrecords_dataset(train_data, train_masks, test_data, test_masks, filename,
+                                   outputdir):
+    outdir = os.path.join(outputdir, "processed_data")
+    os.makedirs(outdir, exist_ok=True)
+
+    with tf.io.TFRecordWriter(f'{outdir}{os.sep}{filename}-train.tfrecords') as writer:
+        for x, y in zip(train_data, train_masks):
+            record = tf_record(x, y)
+            writer.write(record.SerializeToString())
+
+    with tf.io.TFRecordWriter(f'{outdir}{os.sep}{filename}-test.tfrecords') as writer:
+        for x, y in zip(test_data, test_masks):
+            record = tf_record(x, y)
+            writer.write(record.SerializeToString())
+
+
+if __name__ == "__main__":
+    with tf.device("/cpu:0"):
+        data = None
+        if args.args.data == "HERA":
+            data = load_hera(args.args)
+        elif args.args.data == "LOFAR":
+            data = load_lofar(args.args)
+        if not data:
+            exit(0)
+        (train_dataset, train_data, train_labels, train_masks, ae_train_data, ae_train_labels,
+         test_data, test_labels, test_masks, test_masks_orig) = data
+        filename = args_to_tf_filename(args.args)
+        process_into_tfrecords_dataset(ae_train_data, ae_train_labels, test_data, test_labels, filename, '.')

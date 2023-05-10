@@ -27,8 +27,7 @@ def main():
         del train_labels
         del ae_train_data
         del ae_train_labels
-        with tf.device('/cpu:0'):
-            train_unet(train_data, train_masks, test_data,
+        train_unet(train_data, train_masks, test_data,
                        test_labels, test_masks, test_masks_orig, args.args)
 
     if args.args.model == 'RNET':
