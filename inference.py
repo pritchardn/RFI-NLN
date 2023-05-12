@@ -1,5 +1,5 @@
 import tensorflow as tf
-
+import numpy as np
 from model_config import BATCH_SIZE
 
 
