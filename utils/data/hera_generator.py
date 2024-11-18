@@ -32,6 +32,7 @@ sim_params = dict(
     start_time=start_time,
     integration_time=integration_time,
     array_layout=array_layout,
+    polarization_array=['xx', 'yy', 'xy', 'yx'],
 )
 sim = Simulator(**sim_params)
 
@@ -93,7 +94,7 @@ def simulate(id_rfis):
     if 'rfi_stations' in id_rfis:
         sim.add(
             "rfi_stations",
-            stations="/home/mmesarcik/anaconda3/envs/hera/lib/python3.7/site-packages/hera_sim/data/{}".format(
+            stations="/home/nikolas/anaconda3/envs/HERA-SIM/lib/python3.9/site-packages/hera_sim/data/{}".format(
                 station_models[
                     np.random.randint(0, 2)]),
             component_name="rfi_stations",
@@ -165,13 +166,13 @@ def extract_data(sim, baselines, subset):
     """
     data, labels, masks = [], [], []
     _pairs = sim.get_antpairpols()
+    _pairs = np.array([p[:-1] for p in _pairs if p[2] == 'xx'])
     auto_inds = np.array([i for i, p in enumerate(_pairs) if p[0] == p[1]])
     corr_pairs = [p for p in _pairs if p[0] != p[1]]
 
     corr_inds = np.random.choice(range(len(corr_pairs, )), baselines,
                                  replace=False)  # sample random baselines given by "baselines"
     inds = np.concatenate([auto_inds, corr_inds], axis=-1)
-
     for ind in inds:
         pairs = _pairs[ind]
         data_temp = np.absolute(sim.get_data(pairs)).astype('float16')
@@ -188,9 +189,6 @@ def extract_data(sim, baselines, subset):
                 continue
         masks.append(mask_temp)
         labels.append(label_temp[1:])
-
-    data = np.expand_dims(np.array(data), axis=-1)
-    masks = np.expand_dims(np.array(masks), axis=-1)
 
     return data, masks, labels
 
@@ -228,24 +226,28 @@ def main():
     n = 40
     baselines = 7
     rfis = ['rfi_stations', 'rfi_dtv', 'rfi_impulse', 'rfi_scatter']
-    for L in tqdm([1, 3]):  # to simulate IID and OOD RFI
-        for subset in itertools.combinations(rfis, L):
-            data = np.empty([2 * n * baselines, 2 ** 9, 2 ** 9, 1], dtype='float16')
-            masks = np.empty([2 * n * baselines, 2 ** 9, 2 ** 9, 1], dtype='bool')
+    for L in [1, 3]:  # to simulate IID and OOD RFI
+        for subset in tqdm(itertools.combinations(rfis, L)):
+            subset = rfis
+            print(subset)
+            data = np.empty([2 * n * baselines, 2 ** 9, 2 ** 9, 4], dtype='float16')
+            masks = np.empty([2 * n * baselines, 2 ** 9, 2 ** 9, 4], dtype='bool')
             labels = np.empty([2 * n * baselines], dtype=object)
             st, en = 0, 2 * baselines
-            for i in range(n):
+            for _ in tqdm(range(n)):
                 sim = simulate(subset)
                 _data, _masks, _labels = extract_data(sim, baselines, subset)
                 data[st:en, ...], masks[st:en, ...], labels[st:en] = _data, _masks, _labels
                 st = en
                 en += 2 * baselines
 
-            f_name = '/home/mmesarcik/data/HERA/HERA_{}_{}.pkl'.format(
+            f_name = './HERA_{}_{}.pkl'.format(
                 datetime.datetime.now().strftime("%d-%m-%Y"), '-'.join(subset))
             print('{} saved!'.format(f_name))
-
-            pickle.dump([data, labels, masks], open(f_name, 'wb'), protocol=4)
+            with open(f_name, 'wb') as f:
+                pickle.dump([data, labels, masks], f, protocol=4)
+        print(f"Done {L} / 2")
+        exit(0)
 
 
 if __name__ == '__main__':
