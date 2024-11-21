@@ -169,7 +169,6 @@ def extract_data(sim, baselines, subset):
     _pairs = np.array([p[:-1] for p in _pairs if p[2] == 'xx'])
     auto_inds = np.array([i for i, p in enumerate(_pairs) if p[0] == p[1]])
     corr_pairs = [p for p in _pairs if p[0] != p[1]]
-
     corr_inds = np.random.choice(range(len(corr_pairs, )), baselines,
                                  replace=False)  # sample random baselines given by "baselines"
     inds = np.concatenate([auto_inds, corr_inds], axis=-1)
@@ -183,10 +182,10 @@ def extract_data(sim, baselines, subset):
         for rfi in subset:
             try:
                 mask_temp = np.logical_or(mask_temp,
-                                          np.absolute(sim.get(rfi, pairs)) > 0)
+                                          np.absolute(sim.get(rfi, tuple(pairs.tolist()))) > 0)
                 label_temp = label_temp + '_{}'.format(rfi)
             except Exception as e:
-                continue
+                print(e)
         masks.append(mask_temp)
         labels.append(label_temp[1:])
 
@@ -226,9 +225,8 @@ def main():
     n = 40
     baselines = 7
     rfis = ['rfi_stations', 'rfi_dtv', 'rfi_impulse', 'rfi_scatter']
-    for L in [1, 3]:  # to simulate IID and OOD RFI
+    for L in [1, 3, 4]:  # to simulate IID and OOD RFI
         for subset in tqdm(itertools.combinations(rfis, L)):
-            subset = rfis
             print(subset)
             data = np.empty([2 * n * baselines, 2 ** 9, 2 ** 9, 4], dtype='float16')
             masks = np.empty([2 * n * baselines, 2 ** 9, 2 ** 9, 4], dtype='bool')
@@ -246,8 +244,6 @@ def main():
             print('{} saved!'.format(f_name))
             with open(f_name, 'wb') as f:
                 pickle.dump([data, labels, masks], f, protocol=4)
-        print(f"Done {L} / 2")
-        exit(0)
 
 
 if __name__ == '__main__':
